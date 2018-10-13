@@ -55,20 +55,7 @@ Grains are the actors in Orlean's virtual actor model. They're virtual because t
 
 Let's add a simple greeting grain that accepts a greeting message and responds in kind.
 
-**src/GrainInterfaces/IGreetingGrain.cs**
-```c#
-using Orleans;
-using System;
-using System.Threading.Tasks;
-
-namespace HelloWorld.GrainInterfaces
-{
-    public interface IGreetingGrain : IGrainWithGuidKey
-    {
-        Task<string> Greet(string from, string message);
-    }
-}
-```
+<script src="http://gist-it.appspot.com/https://github.com/berdon/intromo/raw/master/samples/HelloWorld/src/GrainInterfaces/IGreetingGrain.cs"></script>
 
 Grain interface define the messages an actor responds to. In our `IGreetingGrain` interface we've told Orleans that we'll respond to `Greet(string, string)` messages.
 
@@ -84,23 +71,7 @@ Here's a simple implementation for our greeting interface.
 
 >Orleans allows for multiple implementations of a given grain interface but in practice you'll normally only use one.
 
-**src/Grains/GreetingGrain.cs**
-```c#
-using System.Threading.Tasks;
-using Interfaces;
-using Orleans;
-
-namespace Grains
-{
-    public class GreetingGrain : Grain, IGreetingGrain
-    {
-        public Task<string> Greet(string from, string message)
-        {
-            return Task.FromResult($"Hi, {from}");
-        }
-    }
-}
-```
+<script src="http://gist-it.appspot.com/https://github.com/berdon/intromo/raw/master/samples/HelloWorld/src/Grains/GreetingGrain.cs"></script>
 
 It should all seem pretty straight forward. We implement the `Greet` method and return "Hi!". If you're not familiar with [TPL](#), `Task.FromResult()` wraps the result in an awaitable `Task<string>`. This can be avoided by marking the `Greet` method with the `async` qualifier.
 
@@ -116,25 +87,7 @@ Cluster Clients are clients to Orleans Silos. They're, generally, the ones calli
 
 Let's update the client generated for us to invoke our new grain.
 
-**src/ClusterClient/Program.cs**
-```c#
-// ...
-
-private static async Task DoClientWork(IClusterClient client)
-{
-    Console.Write("Who are you: ");
-    var from = Console.ReadLine();
-    Console.Write("Enter a greeting: ");
-    var message = Console.ReadLine();
-
-    var grain = client.GetGrain<IGreetingGrain>(Guid.NewGuid());
-    var result = await grain.Greet(from, message);
-
-    Console.WriteLine($"Received: {result}");
-}
-
-// ...
-```
+<script src="http://gist-it.appspot.com/https://github.com/berdon/intromo/raw/master/samples/HelloWorld/src/ClusterClient/Program.cs?slice=76:88"></script>
 
 Above, you'll notice we're calling `IClusterClient.GetGrain<IGreetingGrain>(...)`. This gives us a *reference* to our greeting grain of the interface, `IGreetingGrain`.  This reference is a shallow object that isn't actually tied to a silo just yet. When we call a method on the reference then the magic happens. The request gets funneled to a Silo, either a new one which activates the grain for the first time, or the Silo that has the currently activated grain, and the method is executed.
 
