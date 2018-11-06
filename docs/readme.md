@@ -5,6 +5,12 @@
 <!-- code_chunk_output -->
 
 - [Introduction to Microsoft Orleans](#introduction-to-microsoft-orleans)
+    - [Concepts](#concepts)
+        - [The Actor Model](#the-actor-model)
+        - [Grains](#grains)
+            - [Existence](#existence)
+            - [Message Passing](#message-passing)
+            - [State](#state)
     - [Samples](#samples)
         - [Hello World](#hello-world)
             - [Grains and Interfaces](#grains-and-interfaces)
@@ -12,6 +18,47 @@
             - [Cluster Clients](#cluster-clients)
 
 <!-- /code_chunk_output -->
+
+## Concepts
+
+### The Actor Model
+Grains are the Actors in Orlean's Virtual Actor Model paradigm. ~~If you missed it, read through [The Actor Model](#) to get a grasp on what an actor is and why they're great.~~
+
+Grains are _actors_ - they can receive messages, act on them, and send messages to other grains.
+
+Grains are _virtual_ - they are neither created or destroyed.
+
+They always exist and their existence is irrespective of their locality. That's fancy talk for saying you don't need to worry about what system a grain is executing on, how it got there, or how long it's going to be there. You can simply call a method on the grain (another way of saying sending a message to) and Orleans will handle the rest.
+
+### Grains
+Grains are the fundamental computational units that get spread across a horizontal scalable cluster of worker nodes. Perhaps the simplest way of defining the behavior of a grain is to put it in terms of .NET Tasks and thread pools.
+
+Tasks in .NET are scheduled, using a Task Scheduler, and generally executed on threads from a thread pool. This abstracts away most multithreading concerns from the developer into the underlying TPL framework. Orleans does much the same, Grains are containers for related Tasks that are scheduled and executed across *Silo* pools - your horizontally scaleable cluster.
+
+> Note: If you're unfamiliar or need to brush up on .NETs Task Parallel Library (TPL) - have a read through the [TPL Pitstop Chapter](#)
+
+Grains are defined as strongly-typed interfaces extending from special grain interfaces. These interfaces define both the type of the grain's identifier(s) and the Tasks the grain fulfills. Additionally, attributes can be applied to the interface and methods to alter the behavior of the grain and Task handling.
+
+Here's a quick example:
+
+```c#
+public interface IReceptorGrain : IGrainWithGuidKey
+{
+    Task Innervate(INeurotransmitter transmitter);
+}
+```
+
+We've defined a grain extending from `IGrainWithGuidKey`. This means we'll use a `Guid` to interact with instances of this grain. The `IReceptorGrain` models a neural receptor and accepts one message, `Innervate(...)`, which takes in one parameter. You'll also notice that the method returns a plain `Task` without any return type. All grain methods are required to return promises so Orleans can manage grain interactions asynchronously.
+
+>All grain methods are required to return `Task` or `Task<...>`.
+
+>Tasks are promises that for an operation, in the future, that operation may complete. There are special tasks, `Task<...>`, that function the same but also allow the completed asyncronous operation to return a result as a part of the promise. Tasks generally transition between "WaitingForActivation", "Running", and "RanToCompletion" states but they can also be used to indicate error cases.
+
+#### Existence
+
+#### Message Passing
+
+#### State
 
 ## Samples
 
